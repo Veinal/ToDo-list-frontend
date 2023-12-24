@@ -1,0 +1,20 @@
+@keyframes rotate-color {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @-webkit-keyframes rotate-color {
+    from {
+      -webkit-transform: rotate(0deg);
+    }
+    to {
+      -webkit-transform: rotate(360deg);
+    }
+  }
+  .animate-gradient {
+    animation: rotate-color 5s linear infinite;
+    -webkit-animation: rotate-color 5s linear infinite;
+  }
