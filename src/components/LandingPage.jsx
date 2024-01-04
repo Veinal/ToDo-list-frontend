@@ -24,7 +24,7 @@ export default function LandingPage() {
                     Your Personal  
 
                     <span class="text-5xl text-blue-500 leading-relaxeds"
-                        > ToDo Hub
+                        > ToDo Tracks
                     </span>
 
                 </h2>

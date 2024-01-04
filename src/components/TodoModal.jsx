@@ -2,7 +2,7 @@ import axios from 'axios';
 import React from 'react';
 import { useState } from 'react';
 
-export default function TodoModal({handleClose}) {
+export default function TodoModal({handleClose,setCount}) {
   const [todo,setTodo]=useState()
 
   const HandleChange=(e)=>{
@@ -14,6 +14,7 @@ export default function TodoModal({handleClose}) {
     axios.post('http://localhost:7000/api/notes/insert',todo)
     .then((res)=>{
       console.log(res.data,"res.data")
+      setCount((prev)=>!prev)
       handleClose()
     })
     .catch((err)=>{
