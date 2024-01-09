@@ -4,6 +4,7 @@ import Navbar from './Navbar'
 import todosvg from '../todosvg.jpg'
 import { Link } from 'react-router-dom'
 import todoparal from '../todoparal.jpg'
+import svgimg from '../notepad-svgrepo-com.svg'
 
 export default function LandingPage() {
   return (
@@ -83,23 +84,11 @@ export default function LandingPage() {
         </span>
     </section>
 
-    <section class="p-20 space-y-8">
-        <h1 class="text-4xl text-center my-20">Tempor sit labore nostrud</h1>
-
-        <p>
-            Exercitation non Lorem exercitation tempor amet ad esse velit. Anim
-            
-        </p>
-
-        <p>
-            Incididunt eu pariatur laborum reprehenderit duis ex cillum fugiat.
-            
-        </p>
-
-        <p>
-            Ipsum ea ad fugiat incididunt ea sit laborum cupidatat in ullamco
-            
-        </p>
+    <section className="p-20 space-y-8">
+        <div className='flex justify-center items-center gap-2'>
+            <img style={{width:'40%'}} src={svgimg} alt="dsfs" />
+            <h1 className=' font-bold text-3xl text-gray-700'>Empower your productivity. <br /> Your to-do's, reimagined.</h1>
+        </div>
     </section>
 </main>
 

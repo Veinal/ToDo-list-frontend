@@ -13,7 +13,9 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import TodoModal from './TodoModal'
 import DeleteIcon from '@mui/icons-material/Delete';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import Tooltip from '@mui/material/Tooltip';
+import { useNavigate } from 'react-router-dom';
 
 const style = {
     position: 'absolute',
@@ -25,23 +27,31 @@ const style = {
     border: '2px solid #000',
     boxShadow: 24,
     p: 4,
-  };
+};
 
 export default function Starred() {
     const [getStarred, setGetStarred] = useState([])
-    const [selected,setSelected]=useState('')
-    const [count,setCount]=useState(0)
+    const [selected, setSelected] = useState('')
+    const [count, setCount] = useState(0)
 
     const [open, setOpen] = React.useState(false);
-    const handleOpen = (item) =>{
+    const handleOpen = (item) => {
         setOpen(true);
         setSelected(item)
     }
     const handleClose = () => setOpen(false);
-    
+
+    const navigate = useNavigate()
+    useEffect(() => {
+        const userExists = JSON.parse(localStorage.getItem("userToken"))
+        if (!userExists) {
+            navigate('/')
+        }
+    }, [])
 
     useEffect(() => {
-        axios.get('http://localhost:7000/api/starred/view')
+        const user = JSON.parse(localStorage.getItem("userToken"))
+        axios.get('http://localhost:7000/api/starred/view', { headers: { "userToken": user } })
             .then((res) => {
                 console.log(res.data, "res.data")
                 setGetStarred(res.data)
@@ -51,16 +61,23 @@ export default function Starred() {
             })
     }, [count])
 
-    const HandleDelete=(item)=>{
+    const HandleDelete = (item) => {
         axios.delete(`http://localhost:7000/api/starred/delete/${item._id}`)
-        .then((res)=>{
-            console.log(res.data,"res.data")
-            setCount((prev)=>!prev)
-            handleClose()
-        })
-        .catch((err)=>{
-            console.log(err,"err")
-        })
+            .then((res) => {
+                console.log(res.data, "res.data")
+                axios.put(`http://localhost:7000/api/notes/update/${item?.notes_id?._id}`, { status: "unarchived" })
+                    .then((res) => {
+                        console.log(res.data, "res.data")
+                    }).catch((err) => {
+                        console.log(err, "err")
+                    })
+
+                setCount((prev) => !prev)
+                handleClose()
+            })
+            .catch((err) => {
+                console.log(err, "err")
+            })
     }
 
     return (
@@ -82,10 +99,10 @@ export default function Starred() {
                                                 <span className=' font-semibold text-xl'>Name: {item?.notes_id?.name}</span>
                                                 <p className=' text-gray-700'>{item?.notes_id?.description}</p>
                                             </div>
-    
+
                                         </CardContent>
-                                        <CardActions style={{position:'relative',top:'40%',left:'70%'}}>
-                                            <Tooltip title="unstar note"><Button onClick={()=>handleOpen(item)} color='error'><DeleteIcon/></Button></Tooltip>
+                                        <CardActions style={{ position: 'relative', top: '40%', left: '70%' }}>
+                                            <Tooltip title="unstar note"><Button onClick={() => handleOpen(item)} color='error'><StarBorderIcon style={{ width: 27 }} /></Button></Tooltip>
                                         </CardActions>
                                     </Card>
                                 </>
@@ -104,10 +121,10 @@ export default function Starred() {
                 >
                     <Box sx={style}>
                         {/* dont want the delete button so ill put the unstar button later */}
-                    <p className=' font-medium text-xl mb-3'>Do you want to delete this note?</p>
+                        <p className=' font-medium text-xl mb-3'>Remove this note?</p>
                         <div className=' flex gap-4 justify-end '>
-                        <button onClick={()=>HandleDelete(selected)} style={{borderRadius : '5px'}} className=' bg-green-600 py-2 px-4 text-white font-semibold'>YES</button>
-                        <button onClick={handleClose} style={{borderRadius : '5px'}} className='bg-red-600 py-2 px-3 text-white font-semibold'>CANCEL</button>
+                            <button onClick={() => HandleDelete(selected)} style={{ borderRadius: '5px' }} className=' bg-green-600 py-2 px-4 text-white font-semibold'>YES</button>
+                            <button onClick={handleClose} style={{ borderRadius: '5px' }} className='bg-red-600 py-2 px-3 text-white font-semibold'>CANCEL</button>
                         </div>
                     </Box>
                 </Modal>

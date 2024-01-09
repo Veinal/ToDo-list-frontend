@@ -1,6 +1,6 @@
 import React from 'react'
 import Footer from './Footer'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import '../HomeCard.css'
 import ToDoimg from '../To-Do List.svg'
 import Box from '@mui/material/Box';
@@ -19,6 +19,9 @@ import { useState } from 'react'
 import Sidebar from './Sidebar'
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
+
 
 const style = {
   position: 'absolute',
@@ -45,24 +48,51 @@ const style2 = {
 };
 
 export default function Notes() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    const userExists = JSON.parse(localStorage.getItem("userToken"))
+    if (!userExists) {
+      navigate('/')
+    }
+  }, [])
+
+  const [getNotes, setGetNotes] = useState([])
+  const [count, setCount] = useState(0)
+  const [selected, setSelected] = useState('')
+  const [user, setUser] = useState('')
   const [open, setOpen] = React.useState(false);
+  const [open2, setOpen2] = React.useState(false);
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const [selected, setSelected] = useState('')
-
-  const [open2, setOpen2] = React.useState(false);
   const handleOpen2 = (item) => {
     setOpen2(true);
     setSelected(item)
   }
   const handleClose2 = () => setOpen2(false);
 
-  const [getNotes, setGetNotes] = useState([])
-  const [count, setCount] = useState(0)
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+
+  const handleSnackbarOpen = () => {
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
 
   useEffect(() => {
-    axios.get('http://localhost:7000/api/notes/view')
+    const user = JSON.parse(localStorage.getItem("userToken"))
+    setUser(user)
+  }, [])
+
+  useEffect(() => {
+    const userTok = JSON.parse(localStorage.getItem("userToken"))
+    axios.get('http://localhost:7000/api/notes/view', { headers: { "userToken": userTok } })
       .then((res) => {
         console.log(res.data, "res.data")
         setGetNotes(res.data)
@@ -73,9 +103,15 @@ export default function Notes() {
   }, [count])
 
   const HandleDelete = (item) => {
-    axios.delete(`http://localhost:7000/api/notes/delete/${item._id}`)
+    axios.post(`http://localhost:7000/api/deleted/insert`,{notes_id: item._id})
       .then((res) => {
         console.log(res.data, "res.data")
+        axios.put(`http://localhost:7000/api/notes/update/${item._id}`, {  status: "deleted" })
+          .then((res) => {
+            console.log(res.data, "res.data")
+          }).catch((err) => {
+            console.log(err)
+          })
         setCount((prev) => !prev)
         handleClose2()
       })
@@ -85,9 +121,17 @@ export default function Notes() {
   }
 
   const HandleStarred = (i) => {
-    axios.post('http://localhost:7000/api/starred/insert', { notes_id: i._id })
+    axios.post('http://localhost:7000/api/starred/insert', { notes_id: i._id }, { headers: { "userToken": user } })
       .then((res) => {
         console.log(res.data, "res.data")
+        axios.put(`http://localhost:7000/api/notes/update/${i._id}`, { status: "starred" })
+          .then((res) => {
+            console.log(res.data, "res.data")
+          }).catch((err) => {
+            console.log(err, "err")
+          })
+        setCount((prev) => !prev)
+        handleSnackbarOpen()
       })
       .catch((err) => {
         console.log(err, "err")
@@ -95,7 +139,7 @@ export default function Notes() {
   }
 
   const HandleArchived = (i) => {
-    axios.post('http://localhost:7000/api/archived/insert', { notes_id: i._id })
+    axios.post('http://localhost:7000/api/archived/insert', { notes_id: i._id }, { headers: { "userToken": user } })
       .then((res) => {
         console.log(res.data, "res.data")
         setCount((prev) => !prev)
@@ -134,7 +178,7 @@ export default function Notes() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 px-10">
               {getNotes.map((item) => (
-                item.status === 'unarchived' && ( //only display notes that are unarchived
+                (item.status === 'unarchived' || item.status === 'starred') && ( //only display notes that are unarchived
                   <div
                     className="overflow-hidden group relative border-4 rounded-lg p-[1px] flex justify-center items-center"
                   >
@@ -142,7 +186,7 @@ export default function Notes() {
                     <div key={item.id} className="flex flex-col justify-between w-full h-64 relative z-10 rounded-lg bg-white p-6 sm:p-8" >
                       <div className=" sm:pr-2 text-justify">
                         <h3 className="text-xl font-bold text-gray-900">
-                          Name: {item.name}
+                          Title: {item.name}
                         </h3>
                         <div className="mt-2 text-sm text-gray-500 max-h-[80px] overflow-hidden">
                           {/* Apply word wrap for the description */}
@@ -160,9 +204,16 @@ export default function Notes() {
                         </button>
                       </div>
                     </div>
-                    <button onClick={() => HandleStarred(item)} className=' absolute z-10 right-2 top-1 bg-blue-600 p-1 mt-1 self-start bg-transparent'>
-                      <Tooltip title="star note"><StarBorderIcon style={{ fontSize: '27px' }} /></Tooltip>
-                    </button>
+                    {item.status === "starred" ?
+                      <button onClick={() => { alert("note is already starred!!!") }} className=' absolute z-10 right-2 top-1 bg-blue-600 p-1 mt-1 self-start bg-transparent'>
+                        <Tooltip title="starred note"><StarIcon style={{ fontSize: '27px' }} /></Tooltip>
+                      </button>
+                      :
+                      <button onClick={() => HandleStarred(item)} className=' absolute z-10 right-2 top-1 bg-blue-600 p-1 mt-1 self-start bg-transparent'>
+                        <Tooltip title="star note"><StarBorderIcon style={{ fontSize: '27px' }} /></Tooltip>
+                      </button>
+                    }
+
                   </div>
                 )
               ))}
@@ -208,6 +259,24 @@ export default function Notes() {
           </Box>
         </Modal>
       </div>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000} // Adjust as needed
+        onClose={handleSnackbarClose}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'center'
+        }}
+      >
+        <MuiAlert
+          onClose={handleSnackbarClose}
+          severity="success" // Change severity based on message type
+          sx={{ width: '400px' }}
+        >
+          Note starred!
+        </MuiAlert>
+      </Snackbar>
 
       <Footer />
     </div>

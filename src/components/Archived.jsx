@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import axios from 'axios';
 import { useState } from 'react';
 import Tooltip from '@mui/material/Tooltip';
+import { useNavigate } from 'react-router-dom';
 
 export default function Archived() {
     const [getArchived, setGetArchived] = useState([])
@@ -23,8 +24,17 @@ export default function Archived() {
     }
     const handleClose = () => setOpen(false);
 
+    const navigate = useNavigate()
     useEffect(() => {
-        axios.get('http://localhost:7000/api/archived/view')
+        const userExists = JSON.parse(localStorage.getItem("userToken"))
+        if (!userExists) {
+            navigate('/')
+        }
+    }, [])
+
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("userToken"))
+        axios.get('http://localhost:7000/api/archived/view', { headers: { "userToken": user } })
             .then((res) => {
                 console.log(res.data, "res.data")
                 setGetArchived(res.data)
@@ -74,7 +84,7 @@ export default function Archived() {
 
                                         </CardContent>
                                         <CardActions className=' relative top-28 left-3/4'>
-                                            <Tooltip title="unarchive"><Button onClick={() => HandleDelete(item)}><UnarchiveIcon style={{fontSize:'27px'}}/></Button></Tooltip>
+                                            <Tooltip title="unarchive"><Button onClick={() => HandleDelete(item)}><UnarchiveIcon style={{ fontSize: '27px' }} /></Button></Tooltip>
                                         </CardActions>
                                     </Card>
                                 </>

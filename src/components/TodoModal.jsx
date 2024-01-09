@@ -1,9 +1,16 @@
 import axios from 'axios';
 import React from 'react';
+import { useEffect } from 'react';
 import { useState } from 'react';
 
 export default function TodoModal({handleClose,setCount}) {
   const [todo,setTodo]=useState()
+  const [user,setUser]=useState('')
+
+  useEffect(()=>{
+    const user=JSON.parse(localStorage.getItem("userToken"))
+    setUser(user)
+  },[])
 
   const HandleChange=(e)=>{
     setTodo({...todo,[e.target.name]:e.target.value})
@@ -11,7 +18,7 @@ export default function TodoModal({handleClose,setCount}) {
 
   const HandleSubmit=(e)=>{
     e.preventDefault()
-    axios.post('http://localhost:7000/api/notes/insert',todo)
+    axios.post('http://localhost:7000/api/notes/insert',todo,{headers:{"userToken":user}})
     .then((res)=>{
       console.log(res.data,"res.data")
       setCount((prev)=>!prev)
@@ -28,7 +35,7 @@ export default function TodoModal({handleClose,setCount}) {
       <div className="flex flex-col items-center space-y-4">
         <div className="flex flex-col items-start w-full">
           <label className="text-2xl" htmlFor="name">
-            Name:
+            Title:
           </label>
           <input
             className="w-full px-4 py-2 border-2 rounded-md focus:outline-none focus:border-blue-500"
