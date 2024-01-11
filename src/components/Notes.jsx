@@ -103,10 +103,10 @@ export default function Notes() {
   }, [count])
 
   const HandleDelete = (item) => {
-    axios.post(`http://localhost:7000/api/deleted/insert`,{notes_id: item._id})
+    axios.post(`http://localhost:7000/api/deleted/insert`, { notes_id: item._id })
       .then((res) => {
         console.log(res.data, "res.data")
-        axios.put(`http://localhost:7000/api/notes/update/${item._id}`, {  status: "deleted" })
+        axios.put(`http://localhost:7000/api/notes/update/${item._id}`, { status: "deleted" })
           .then((res) => {
             console.log(res.data, "res.data")
           }).catch((err) => {
@@ -121,7 +121,7 @@ export default function Notes() {
   }
 
   const HandleStarred = (i) => {
-    axios.post('http://localhost:7000/api/starred/insert', { notes_id: i._id }, { headers: { "userToken": user } })
+    axios.post('http://localhost:7000/api/starred/insert', { notes_id: i._id, user_id: i?.user_id?._id }, { headers: { "userToken": user } })
       .then((res) => {
         console.log(res.data, "res.data")
         axios.put(`http://localhost:7000/api/notes/update/${i._id}`, { status: "starred" })
@@ -139,7 +139,7 @@ export default function Notes() {
   }
 
   const HandleArchived = (i) => {
-    axios.post('http://localhost:7000/api/archived/insert', { notes_id: i._id }, { headers: { "userToken": user } })
+    axios.post('http://localhost:7000/api/archived/insert', { notes_id: i._id, user_id: i?.user_id?._id }, { headers: { "userToken": user } })
       .then((res) => {
         console.log(res.data, "res.data")
         setCount((prev) => !prev)
@@ -168,12 +168,12 @@ export default function Notes() {
             <div className='flex justify-center'>
               <h1 className=' font-bold text-4xl underline mb-6'>NOTES</h1>
             </div>
-            <Link to='/register'>
+            {/* <Link to='/register'>
               <button className="px-3 md:px-4 py-1 md:py-2 bg-sky-600 border border-sky-600 text-white rounded-lg hover:bg-sky-700"><i className="fa-solid fa-arrow-right-to-bracket"></i> Login</button>
             </Link>
             <Link to='/'>
               <button className="px-3 md:px-4 py-1 md:py-2 bg-sky-600 border border-sky-600 text-white rounded-lg hover:bg-sky-700"><i className="fa-solid fa-arrow-right-to-bracket"></i> LP</button>
-            </Link>
+            </Link> */}
             <br />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 px-10">
